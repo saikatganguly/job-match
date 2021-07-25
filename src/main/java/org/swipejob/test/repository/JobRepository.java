@@ -27,5 +27,14 @@ public interface JobRepository extends MongoRepository<Job, Integer> {
             "{\"score\": { \"$meta\": \"textScore\" }}" +
             ").sort( { score: { $meta: \"textScore\" } } )")
 
-    public List<Job> nearByJobs(double longitude, double latitude , double distance , String[] skills , String certificates , Sort sort);
+    List<Job> nearByJobs(double longitude, double latitude , double distance , String[] skills , String certificates , Sort sort);
+
+    @Query(value= "{" +
+            "    \"$and\": [" +
+            "    {\"$text\": { \"$search\": ?1 }}," +
+            "    {\"jobTitle\": {\"$in\": ?0}}" +
+            "]}," +
+            "{\"score\": { \"$meta\": \"textScore\" }}" +
+            ").sort( { score: { $meta: \"textScore\" } } )")
+    List<Job> findJobsBySkillsAndCertificate(String[] skills, String certificates, Sort sort);
 }

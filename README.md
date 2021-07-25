@@ -33,3 +33,7 @@ Get worker based on the ID. Searched in the mongodb :
 -> Job title filtering based on Worker skills
 
 -> geolocation search based on Worker jobSearchAddress
+
+-> If no records found then looks for jobs based on skills and jobSearchAddress (for all locations) and sort by distance and testscore.
+
+-> returns top 3 results

@@ -10,6 +10,7 @@ import org.swipejob.test.models.Job;
 import org.swipejob.test.models.Worker;
 import org.swipejob.test.repository.JobRepository;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -40,10 +41,43 @@ public class JobService {
                worker.getJobSearchAddress().getMaxJobDistance()) / 3963.2;
 
         Predicate<Job> licensePredicate = job -> (job.getDriverLicenseRequired().equals(true) ? worker.getHasDriversLicense().booleanValue():true);
+        Predicate<Job> positiveScorePredicate = j -> j.getScore()>0;
 
-        List<Job> jobs =  jobRepository.nearByJobs(worker.getJobSearchAddress().getLongitude() ,worker.getJobSearchAddress().getLatitude() , radian ,worker.getSkills().toArray(new String[0]) , certificates , sort);
-        jobs = jobs.stream().filter(licensePredicate).limit(3).collect(Collectors.toList());
+        List<Job> jobs =  jobRepository.nearByJobs(worker.getJobSearchAddress().getLongitude() ,worker.getJobSearchAddress().getLatitude() ,
+                                                    radian ,worker.getSkills().toArray(new String[0]) , certificates , sort);
+
+        if(jobs.size()==0){
+            jobs = jobRepository.findJobsBySkillsAndCertificate(worker.getSkills().toArray(new String[0]) , certificates , sort);
+            jobs.sort(getComparator(worker));
+        }
+        jobs = jobs.stream().filter(licensePredicate).filter(positiveScorePredicate).limit(3).collect(Collectors.toList());
         return jobs;
 
+    }
+
+    private Comparator getComparator(Worker worker){
+        Comparator<Job> jobsComparator
+                = Comparator.comparing(
+                Job::getLocation, (l1, l2) -> {
+                    Double job2Distance = distance(worker.getJobSearchAddress().getLatitude() , worker.getJobSearchAddress().getLongitude() , l2.getLatitude() , l2.getLongitude());
+                    Double job1Distance = distance(worker.getJobSearchAddress().getLatitude() , worker.getJobSearchAddress().getLongitude() , l1.getLatitude() , l1.getLongitude());
+                    return job1Distance.compareTo(job2Distance);
+                })
+                .thenComparing(Job::getScore , Comparator.reverseOrder());
+        return jobsComparator;
+    }
+
+    private double distance(double lat1, double lon1, double lat2, double lon2) {
+        if ((lat1 == lat2) && (lon1 == lon2)) {
+            return 0;
+        }
+        else {
+            double theta = lon1 - lon2;
+            double dist = Math.sin(Math.toRadians(lat1)) * Math.sin(Math.toRadians(lat2)) + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.cos(Math.toRadians(theta));
+            dist = Math.acos(dist);
+            dist = Math.toDegrees(dist);
+            dist = dist * 60 * 1.1515;
+            return dist;
+        }
     }
 }

@@ -114,7 +114,7 @@ public class Job {
         this.guid = guid;
     }
 
-    public float getScore() {
+    public Float getScore() {
         return score;
     }
 
