@@ -20,7 +20,7 @@ import java.util.function.Function;
 
 
 @RestController
-@RequestMapping("/job")
+@RequestMapping
 public class JobController {
     private static Logger logger = LoggerFactory.getLogger(JobController.class);
 
@@ -30,14 +30,14 @@ public class JobController {
     @Autowired
     private JobService service;
 
-    @GetMapping(value = "/find/{workerId}")
+    @GetMapping(value = "/matches/{workerId}")
     public ResponseEntity<List<Job>> findJobsByWorkerId(@PathVariable int workerId){
         logger.info("Serching worker by id : {}", workerId);
         Worker worker = repository.findOne(workerId);
         if(worker==null)
             return ResponseEntity.badRequest().body(Collections.emptyList());
         logger.debug("Worker found : {}", worker);
-        Function<Worker , List> func = service::findJobs;
-        return new ResponseEntity(func.apply(worker) , HttpStatus.OK);
+        Function<Worker , List> jobFunction = service::findJobs;
+        return new ResponseEntity(jobFunction.apply(worker) , HttpStatus.OK);
     }
 }
