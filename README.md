@@ -21,3 +21,12 @@ Created textIndex using db.job.createIndex( { requiredCertificates: "text" } ).
 
 ## Rest URL to fetch jobs
 http://localhost:8088/job/find/{workerId}
+
+## Brief of the implementation
+Get worker based on the ID. Searched in the mongodb : 
+
+-> Text based search based on worker certificates 
+
+-> Job title filtering based on Worker skills
+
+-> geolocation search based on Worker jobSearchAddress
